@@ -140,7 +140,7 @@ For each modified spec:
   body read runs on a response that already failed.
 - **Null guard before dereference.** A parsed body can be null. Assert it is not null before any
   `body!.field`. Missing guard: **Architectural**.
-- **Dynamic test data.** Resources the test creates need unique identifiers (generated IDs, random
+- **Dynamic test data.** Records the test creates need unique identifiers (generated IDs, random
   suffixes). A static identifier collides under parallel runs. **Architectural**; **Critical** when
   it already collides.
 - **One behaviour per test, no cross-test state.** A test that checks two unrelated behaviours fails
@@ -222,6 +222,10 @@ Apply these whether or not a canon exists. Each is conditional on the project us
 - **Composed test import (conditional: the project wraps the runner's `test`).** Specs import `test`
   and `expect` from the composed module. A raw runner import bypasses instrumentation and any
   write guard. Type-only imports from the runner are fine. Raw import: **Critical**.
+- **Manually created request contexts need the environment's required headers (conditional: the
+  environment requires a bypass or auth header).** Default headers configured on a test project do not
+  propagate to a context created by hand. Such a context must inject the header itself, or use the
+  project's client. **Critical** when a required header is missing and the target rejects the request.
 - **Fixture file naming.** Kebab-case, self-describing. No vague `utils`, `helpers`, `misc` or `index`.
 - **Fixture or support?** Decision test: would a test destructure it as an argument? Then it is a
   fixture, and it may stay. Is it a function, class or data that something imports? Then it is support
@@ -286,6 +290,10 @@ object, ask: does it belong in one of those?
 - **Duplicated helper logic that touches no page or request** becomes a stateless function in the
   lowest fitting support layer (constants, then utilities, then mechanism, then domain, then setup).
   **Optimization** on first duplicate, **Architectural** on the second.
+- **Support layers and folders.** If the project layers its support code (constants, utilities, mechanism,
+  domain, setup), a file lives in the lowest layer that fits its role, and imports flow downward only.
+  One cohesive role per file. Comments say why, not what. Do not add a catch-all folder such as
+  `helpers`, `utils` or `misc`; a new file's name predicts its contents. **Architectural.**
 - **Support helpers never take a page or request (hard).** Passing a browser page or API request
   context into a support helper makes it stateful; that belongs in a page object, a service or a
   fixture. Discovery (Playwright types as the example):
@@ -324,7 +332,7 @@ Earlier sections already cover SRP and composition in their test-specific form. 
 - **YAGNI for fixtures, services, helpers and page-object methods.** An export with no caller is noise
   that rots. Grep the test folder for each symbol the diff adds. Zero hits means delete it.
   **Optimization**, or **Architectural** when the symbol claims to test a contract nothing else covers.
-- **Predicate naming.** Boolean variables and helpers read as questions (`isStagingRun`, `hasResults`,
+- **Predicate naming.** Boolean variables and helpers read as questions (`isEmptyCart`, `hasResults`,
   `canSubmit`). Avoid neutral nouns such as `status` or `state` for booleans, because they do not say
   which value means true. **Optimization.**
 - **Test name is the failure message.** The first thing a CI reader sees is the test name, so it must
@@ -350,9 +358,21 @@ Text rots when it repeats something the code, tags or titles already own.
 
 ---
 
-## 10. Test-only reuse and the app boundary (quick reference)
+## 10. Reuse-first and extraction destinations
 
-- Reuse-first: an inline locator, mock, factory, or string that duplicates something the project's
-  page objects, fixtures, support, test data or i18n already own is a finding, even when it passes.
-  Remedy: reuse or extend the owner. The rule is the most common real finding.
+- **Reuse-first (hard).** Before anything is authored in a spec, check it against the existing framework
+  code and reuse or extend it. New code goes to its proper home, never inline. An inline mock, factory,
+  locator or string that duplicates existing capability is **Architectural** even when the test passes.
+  Discovery: the folder READMEs and the existing support, page-object, test-data and i18n modules.
+- **Each concern has one home.** Where something inline in a spec belongs (use the project's own
+  folders; the names below are examples):
+  - a route mock: a mocks module under support, grouped by area;
+  - a data factory or seed identifier: the test-data module or a domain module under support;
+  - a user-facing string: the project's translation source (or a test-data module if the copy has no
+    translation, with the reason noted);
+  - an API call with auth headers: the API fixture or the central client;
+  - a test-ID or attribute locator: a getter on the page object;
+  - a hardcoded locale: the locale fixture or the path helper.
+  Any of these inline in a spec is a finding. Severity: **Architectural**, or **Critical** when it
+  hides a tautology or a locale-bound assertion.
 - A confirmed app bug becomes a ticket, never a loosened assertion or a skip.
