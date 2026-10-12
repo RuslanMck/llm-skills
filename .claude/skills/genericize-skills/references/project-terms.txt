@@ -1,0 +1,29 @@
+# Terms that usually mean project-specific material leaked into a generic skill.
+# One fixed string per line, matched case-insensitively. Lines starting with # are ignored.
+# A hit is a REVIEW, not a failure: the word may be a labelled example. Extend freely.
+Adyen
+Astro
+Crowdin
+Linear
+lefthook
+parseResponseLoose
+ApiClient
+uiPath
+apiPath
+RELEASED_LOCALES
+E2E_LOCALE
+canon.mjs
+BFF
+env-config.json
+make <
+tests/e2e
+@smoke
+known-issue
+quarantine
+evidence server
+evidence-server
+origin/master
+staging
+Docker stack
+redaction
+Resources
