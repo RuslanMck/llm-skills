@@ -132,13 +132,13 @@ fixtures, support helpers, test data. Most real findings are visible only there.
   app code touched, try/catch in a test body, unlabelled parked tests, duplicate primary test IDs (when the
   project uses test IDs in tags), guard hard failures (when the project has guards), brittle selectors where a
   stable semantic locator or test ID already exists and the test ignored it, bare `expect` outside steps where
-  the project's convention requires steps.
+  the project's convention requires steps, a name that says one thing and holds another.
 - **Architectural debt**: fix in this PR or a follow-up. Brittle selectors with no stable handle yet (propose
   the hook to the owning team), literals that belong in test data, debt markers without a ticket, a spec-derived
   locator built from a page object's locator, tags written as one comma-joined string, most naming findings.
 - **Optimization**: suggestion, not a blocker. Extraction opportunities, bare `expect` where steps are not
-  required (suggest steps), comment hygiene, predicate names, size nudges.
-- **Naming** findings sit in their own section, with their severity word inline.
+  required (suggest steps), comment hygiene, size nudges.
+- **Naming** findings, predicate names included, sit in their own section with their severity word inline.
 
 ## Checklist
 

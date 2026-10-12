@@ -2,7 +2,7 @@
 
 Names are the check no tool performs, and the one most often skipped. When you wrote the code under
 review, run this pass **before** the correctness hunt: the author's own reading of a name is the
-least reliable. Every hit is at least **Architectural**. Report all naming findings in the report's
+least reliable. Every hit is at least **Architectural**, except predicate names (**Optimization**, checks.md §8). Report all naming findings in the report's
 `Naming` section (see SKILL.md, Report format), never under a severity heading.
 
 ## 1. The method: read each name cold
@@ -81,7 +81,7 @@ stand. They are reader-centric: a name carries a subject, and team vocabulary wi
   `finishingGroupAfterReveal`.
   ```bash
   # Substitute <test-dir> with the test folder you discovered.
-  grep -RnE "const (snapshot|start|states|result|data|res|tmp|info)\s*=" <test-dir>/specs <test-dir>/support
+  grep -RnE "const (snapshot|start|states|result|data|res|tmp|info)\s*=" <test-dir>
   ```
 - **Invented domain term.** A concept the DOM or the team already names, renamed by the author. If the
   attribute is `data-option-group`, the variable is `optionGroup`, not `axis`. The team's word wins.
@@ -100,7 +100,7 @@ stand. They are reader-centric: a name carries a subject, and team vocabulary wi
   unambiguous (`(item) => item.id`).
   ```bash
   # Substitute <test-dir> with the test folder you discovered.
-  grep -RnE "\b(const|let) (low|high|min|max|before|after|prev|next|first|last|counts|count|counted|total|reconciled|here|there|res)\b\s*[=:]" <test-dir>/specs <test-dir>/support <test-dir>/pages <test-dir>/components <test-dir>/fixtures
+  grep -RnE "\b(const|let) (low|high|min|max|before|after|prev|next|first|last|counts|count|counted|total|reconciled|here|there|res)\b\s*[=:]" <test-dir>
   ```
 - **Carve-out: `expected` and `actual`.** These are the sanctioned names for an oracle-versus-observed
   pair, and they match the step-title form. They are **not** findings on their own. Flag them only when

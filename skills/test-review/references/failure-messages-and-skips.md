@@ -110,8 +110,8 @@ Checks:
 
 The same bar applies to the type of park. A skip that is really a ticketed defect belongs in quarantine,
 or under the framework's known-failure mechanism (Playwright: `test.fail`). `test.fail` runs the test and
-fails the run when the test starts passing, so the defect cannot hide. This section covers the reason
-text. Whether a park is a quarantine, `test.fail`, or a plain skip is decided by the "type of park" paragraph above; this section covers only the reason text.
+fails the run when the test starts passing, so the defect cannot hide. This section covers
+only the reason text; the paragraph above sets the type of park.
 
 ---
 

@@ -56,7 +56,7 @@ cd <test-dir> && grep -RnE \
   . || true
 ```
 
-**`.skip(` and `.fixme(` triage.** Grep `\.skip\(|\.fixme\(` and triage by intent (§skip reasons in
+**`.skip(` and `.fixme(` triage.** Grep `\.skip\(|\.fixme\(` and triage by intent (§2 of
 `failure-messages-and-skips.md`):
 
 - A **parked** skip (unconditional, or `fixme` with a `true` condition) with no ticket or cause
@@ -103,7 +103,7 @@ Combined grep (example):
 
 ```bash
 # Substitute <test-dir> with the test folder you discovered.
-grep -RnE "\.locator\(['\"][^'\"]*(\.(text|bg|border)-(red|danger|green|success)|>|nth-child|:first|:last)|getByRole\([^)]*name:\s*/[^/]+\||\.(first|last)\(\)|getByText\(/[^/]*[0-9]" <test-dir>/specs <test-dir>/pages <test-dir>/components || true
+grep -RnE "\.locator\(['\"][^'\"]*(\.(text|bg|border)-(red|danger|green|success)|>|nth-child|:first|:last)|getByRole\([^)]*name:\s*/[^/]+\||\.(first|last)\(\)|getByText\(/[^/]*[0-9]" <test-dir> || true
 ```
 
 Each hit is a finding unless it is a justified, test-ID-scoped exception with an inline comment.
@@ -195,7 +195,7 @@ Apply these whether or not a canon exists. Each is conditional on the project us
 - **Specs act on exposed locators, never derive new ones.** A spec may act on a locator a page object exposes,
   but must not build a new locator from it (for example chaining off the getter). That couples the spec to the
   page object's DOM. Remedy: add a getter on the page object. **Architectural.**
-- **Magic timeouts.** Literal timeouts in page objects should name a constant in the support folder.
+- **Magic timeouts.** Literal timeouts in page objects should name a constant in one shared constants module.
   **Optimization** for a first occurrence; **Architectural** once a literal repeats across files.
 - **Size.** A page object over about 250 lines may model two routes. Check whether it can split.
   Flag for follow-up; do not block on pre-existing ones.
@@ -253,7 +253,7 @@ Apply these whether or not a canon exists. Each is conditional on the project us
   policy. Discover names by searching the services folder:
   ```bash
   # Substitute <test-dir> with the test folder you discovered.
-  grep -RnE "private async (wait|sleep)\(" <test-dir>/services
+  grep -RnE "private async (wait|sleep)\(" <test-dir>
   ```
   **Architectural.**
 - **No literal retry-delay arrays.** A delay array in a service or fixture is hand-rolled backoff.
@@ -284,11 +284,13 @@ object, ask: does it belong in one of those?
 
 - **Reused identifiers, slugs, domain values** belong in a test-data or constants module. If the project has
   one, the value goes there; if not, keep it in one module and say so.
-  **Critical** when reused across two or more specs and not centralised. Once is a coincidence.
+  **Critical** when the project has such a module and a value reused across two or more specs bypasses
+  it; **Architectural** when the project has none. Once is a coincidence.
   Twice is a constant. Three times is a module.
 - **Credentials.** Passwords come from environment variables or a secrets mechanism, never literals.
   **Critical**. Emails come from a generator, or from a test-user module if the project has one.
-- **Addresses, postcodes, phone numbers** go to the project's test-data module. **Architectural.**
+- **Addresses, postcodes, phone numbers.** If the project has a test-data module, they go there; if not,
+  keep them in one constants module and say so. **Architectural.**
 - **Environment URLs, base paths, slug strings.** If the project has environment config or a path helper,
   a hardcoded environment URL is **Critical**, and the value goes there. If not, the configured base URL is
   the reference, and a hardcoded full URL is **Architectural**.
@@ -373,7 +375,7 @@ Text rots when it repeats something the code, tags or titles already own.
   reference. Grep for them:
   ```bash
   # Substitute <test-dir> with the test folder you discovered.
-  grep -RnE "Traceability:|Tests:\s*U-|IDs:" <test-dir>/specs
+  grep -RnE "Traceability:|Tests:\s*U-|IDs:" <test-dir>
   ```
   Adapt the pattern to the project's codes.
 - **A doc block that restates the title** is deleted. A comment earns its place only when it carries
@@ -382,7 +384,7 @@ Text rots when it repeats something the code, tags or titles already own.
 - **An inline comment that narrates the next line** (`// Click the first option` above a click) is
   deleted. Keep only WHY comments: rationale, workaround, deliberate omission, ticket reference.
   **Optimization**; a cluster of narration comments in one file is **Architectural**.
-- **Comment length.** See `failure-messages-and-skips.md` §Comment locality.
+- **Comment length.** See `failure-messages-and-skips.md` §3.
 
 ---
 
