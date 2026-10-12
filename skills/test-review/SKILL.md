@@ -32,7 +32,7 @@ Discover the project's version of each concern before judging it:
 | Folder rules (page objects, fixtures, support, test data) | every `README.md` under the test folder (glob for them; a new one may have landed) |
 | Translations | i18n libraries in `package.json`, locale files, `t(` / `useTranslation` calls |
 | API contracts and parsing | schema libraries (zod, ajv, io-ts, OpenAPI), contract files, a shared API client |
-| Quarantine or known-issue convention | a register document; grep for `quarantine`, `known-issue`, `fixme` |
+| Quarantine or known-issue convention | a register document; grep for `quarantine`, `known-issue`, and the register's own name |
 | Canonical examples | the README or contributing doc; the example files it names are the reference, and a change that disagrees with them is a finding |
 
 If the repo has none of these (no folder READMEs, no guards, no contracts), the principles here still
@@ -68,9 +68,9 @@ fixtures, support helpers, test data. Most real findings are visible only there.
 2. **Naming pass, first** (`references/naming.md`). Run it before the correctness hunt, especially when
    you wrote the code under review. Every name the diff introduces or renames.
 3. **Scope check** (`references/checks.md` §0). A test-only change must not touch app code.
-4. **Static scans and brittle-selector greps** (`references/checks.md` §1–2). Every hit is a finding until
-   triaged.
-5. **Structure checks** (`references/checks.md` §3–8): spec, page object, fixture and service, test data,
+4. **Static scans and brittle-selector greps** (`references/checks.md` §1–2; for an API-only suite, skip §2 and
+   say so). Every hit is a finding until triaged.
+5. **Structure checks** (`references/checks.md` §3–10): spec, page object, fixture and service, test data,
    DRY and single responsibility, programming patterns, comments.
 6. **Judgment checks** (below), in the order listed.
 7. **Write the report** (format below). Failure-message and skip-reason rules are in
@@ -80,8 +80,8 @@ fixtures, support helpers, test data. Most real findings are visible only there.
 
 - **Naming.** The naming pass in step 2. Each name read cold; a name that needs its body to be understood
   is the finding.
-- **Reuse first.** Before accepting an inline locator, mock, factory, literal or helper, check whether the
-  project already owns it: page objects, fixtures, support, test data, i18n. An inline copy of something
+- **Reuse first** (`references/checks.md` §10). Before accepting an inline locator, mock, factory, literal or
+  helper, check whether the project already owns it: page objects, fixtures, support, test data, i18n. An inline copy of something
   that exists is a finding, even when it passes. Remedy: reuse or extend the owner.
 - **Assertion oracles.** The expected value must come from an independent source: test data, the seed the
   test wrote, a contract, or the feature's specification. A value read back from the app or service under
@@ -120,8 +120,8 @@ fixtures, support helpers, test data. Most real findings are visible only there.
    soft-asserting a status, or reducing scope to silence a real failure is **Critical**. The narrow
    exception is a known defect tracked by a ticket named in the reason (see `failure-messages-and-skips.md`).
 4. **App code is off-limits.** A change that touches app source, public assets, or anything outside the
-   test folder is **Critical** unless the user explicitly authorised it. Quote the project's own rule on
-   app-code changes. Route app findings to the team that owns the code. A confirmed app bug becomes a
+   test folder is **Critical** unless the user explicitly authorised it. If the project states a rule on
+   app-code changes, quote it. If it states none, say so and rest the finding on the test-only scope. Route app findings to the team that owns the code. A confirmed app bug becomes a
    ticket, never a loosened assertion or a skip. Proposing a test hook in app code is a proposal, not an edit.
 5. **Review the files, not the author's account.** Read the files yourself. A description from the agent or
    person who wrote the code is not evidence.
@@ -129,11 +129,28 @@ fixtures, support helpers, test data. Most real findings are visible only there.
 ## Severity
 
 - **Critical**: must fix before merge. Silenced failures, tautologies, manufactured green, missing `await`,
-  app code touched, try/catch in a test body, unlabelled parked tests, duplicate primary IDs, guard hard failures.
-- **Architectural debt**: fix in this PR or a follow-up. Brittle selectors, missing step wrapping, literals
-  that belong in test data, debt markers without a ticket, most naming findings.
-- **Optimization**: suggestion, not a blocker. Extraction opportunities, comment hygiene, predicate names, size nudges.
+  app code touched, try/catch in a test body, unlabelled parked tests, duplicate primary test IDs (when the
+  project uses test IDs in tags), guard hard failures (when the project has guards), brittle selectors where a
+  stable semantic locator or test ID already exists and the test ignored it, bare `expect` outside steps where
+  the project's convention requires steps.
+- **Architectural debt**: fix in this PR or a follow-up. Brittle selectors with no stable handle yet (propose
+  the hook to the owning team), literals that belong in test data, debt markers without a ticket, a spec-derived
+  locator built from a page object's locator, tags written as one comma-joined string, most naming findings.
+- **Optimization**: suggestion, not a blocker. Extraction opportunities, bare `expect` where steps are not
+  required (suggest steps), comment hygiene, predicate names, size nudges.
 - **Naming** findings sit in their own section, with their severity word inline.
+
+## Checklist
+
+- [ ] Project checks run; their output is reported separately from findings.
+- [ ] Target resolved in one line; every file read in full, with the files it imports.
+- [ ] Naming pass run first on every introduced or renamed name; `Naming` section printed.
+- [ ] Static scans and brittle-selector greps run; every hit triaged.
+- [ ] Test-only scope confirmed; no app code touched; no test weakened.
+- [ ] Assertions: oracle independent, red for the right reason, hard or soft as appropriate, inside steps where the project requires them.
+- [ ] Failure messages name the facts; skip and fixme reasons lead with the cause or a ticket.
+- [ ] Every finding quotes `file:line` and the offending line, with traced evidence and a remedy.
+- [ ] Final tally line last, with the `Naming` count.
 
 ## Report format
 
@@ -183,7 +200,8 @@ Critical
 - tests/checkout/cart.spec.ts:87 — the assertion can never fail.
   expect(emptyGroups, `Groups with zero items: ${emptyGroups.join(', ')}`).toHaveLength(0);
   - groupByField (tests/support/grouping.ts:31-37) creates a group key only when it pushes an item into it, so a
-    zero-length group cannot exist in its output. Checks §3 "oracles" applies. Line 61 already makes the real
+    zero-length group cannot exist in its output. The assertion-oracles judgment check applies: two operands derived
+    from the same source can never disagree. Line 61 already makes the real
     version of this check. Delete it, or reframe it against an independent list in the test-data folder.
 
 Naming
@@ -193,17 +211,5 @@ Naming
   - Read on its own it could hold anything. Naming pass: "its shape or type, but not of what".
   Rename to the subject: `recordsByField`.
 
-0 Critical, 0 Architectural, 0 Optimization, 1 Naming across 2 files.
+1 Critical, 0 Architectural, 0 Optimization, 1 Naming across 2 files.
 ```
-
-## Checklist
-
-- [ ] Project checks run; their output is reported separately from findings.
-- [ ] Target resolved in one line; every file read in full, with the files it imports.
-- [ ] Naming pass run first on every introduced or renamed name; `Naming` section printed.
-- [ ] Static scans and brittle-selector greps run; every hit triaged.
-- [ ] Test-only scope confirmed; no app code touched; no test weakened.
-- [ ] Assertions: oracle independent, red for the right reason, hard or soft as appropriate, inside steps.
-- [ ] Failure messages name the facts; skip and fixme reasons lead with the cause or a ticket.
-- [ ] Every finding quotes `file:line` and the offending line, with traced evidence and a remedy.
-- [ ] Final tally line last, with the `Naming` count.

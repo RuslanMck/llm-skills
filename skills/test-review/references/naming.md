@@ -3,7 +3,7 @@
 Names are the check no tool performs, and the one most often skipped. When you wrote the code under
 review, run this pass **before** the correctness hunt: the author's own reading of a name is the
 least reliable. Every hit is at least **Architectural**. Report all naming findings in the report's
-`Naming` section (see `report-format.md`), never under a severity heading.
+`Naming` section (see SKILL.md, Report format), never under a severity heading.
 
 ## 1. The method: read each name cold
 
@@ -17,8 +17,8 @@ surrounding lines. Write one line saying what it holds, or what it does.
 - **Critical** when the name says one thing and holds another. Misleading names are worse than vague ones.
 
 Scope: variables, constants, parameters, callback parameters, functions, helpers, methods, types,
-fields, and test titles and step titles. Cover every folder the diff touches: specs, support,
-page objects, components, fixtures, services, schemas, test data.
+fields, and test titles and step titles. Cover every folder the diff touches (whichever of these the project has: specs, support,
+page objects, components, fixtures, services, schemas, test data).
 
 **There is no denylist.** A list of bad words catches only the words somebody already thought of.
 The names that slip through are the ones nobody listed. The greps below are a floor, not the method.
@@ -57,7 +57,7 @@ Step titles come in two kinds. Check each one against its kind.
   It starts with an imperative verb. A setup step that starts with the assertion verb is a wrong-kind
   finding.
 - **An assertion step** contains an assertion. Its title starts with the project's assertion verb
-  (`Verify` as the example used in the source project). An assertion step without that verb is a finding.
+  (e.g. `Verify`). An assertion step without that verb is a finding.
 - **Retired prefixes.** An old prefix such as `Assert:` left in a title is **Architectural**. Rewrite to
   the current convention.
 - **Mechanism instead of meaning.** `Verify body parses against the schema` states the mechanism. Say
@@ -105,12 +105,12 @@ stand. They are reader-centric: a name carries a subject, and team vocabulary wi
 - **Carve-out: `expected` and `actual`.** These are the sanctioned names for an oracle-versus-observed
   pair, and they match the step-title form. They are **not** findings on their own. Flag them only when
   one scope holds several different expectations, where `expected` cannot say which one.
-- **Scope of these rules.** They bind support, page objects, components and fixtures exactly as they
+- **Scope of these rules.** They bind every helper folder the project has (support, page objects, components, fixtures) exactly as they
   bind specs. A vague name in a shared helper is worse, because every caller inherits it. Check the
   file's own declarations **and** the names it destructures from the helpers it calls.
   `const { rendered, lowest, highest } = helper()` is a finding against the helper's return type,
   reported against the helper.
-- **Page-object locator names end in the element's role.** `quoteLink`, `reorderButton`, `…Card`,
+- **Page-object locator names end in the element's role (if the project has page objects).** `quoteLink`, `reorderButton`, `…Card`,
   `…Modal`, `…Text`. A name like `quoteAction` that needs a comment to say "it's a link" is a finding.
   A comment that restates the name is deleted.
 - **Predicate names read as questions.** See `checks.md` §8.
